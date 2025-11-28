@@ -15,6 +15,11 @@ use App\Http\Controllers\TransferBarangController;
 use App\Http\Controllers\PurchasingDetailController;
 use App\Http\Controllers\RequestManagementController;
 use App\Http\Controllers\DashboardPurchasingController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ChatSemanticController;
+
+
 
 // =======================
 // AUTH | HOME
@@ -125,7 +130,37 @@ Route::get('/api/departemen-items', [DepartemenItemController::class, 'index'])-
 Route::get('/api/departemen-items/{departemen}', [DepartemenItemController::class, 'getByDepartemen'])->name('departemen-items.show');
 Route::get('/api/departemen', [DepartemenItemController::class, 'getDepartemen'])->name('departemen.list');
 
+
+
 // =======================
 // SETTINGS
 // =======================
 require __DIR__ . '/settings.php';
+
+
+// =======================
+// SEMANTIC
+// =======================
+
+
+Route::get('/toko', function () {
+    return Inertia::render('table/searchtoko'); // <-- nama folder & file Harus SESUAI
+})->name('toko.index');
+
+// Halaman UI (React)
+Route::get('/products/{id}', function ($id) {
+    return Inertia::render('table/productdetail', ['id' => $id]);
+})->name('products.detail');
+
+// Endpoint API Search
+Route::prefix('semantic')->group(function () {
+    Route::get('/search', [SearchController::class, 'index'])->name('semantic.search');
+
+    // Endpoint API DETAIL PRODUK by ID
+    Route::get('/products/{id}', [ProductController::class, 'show'])->name('semantic.product.show');
+    Route::post('/semantic/chat', [ChatSemanticController::class, 'handle']);
+});
+
+
+// routes/web.php
+

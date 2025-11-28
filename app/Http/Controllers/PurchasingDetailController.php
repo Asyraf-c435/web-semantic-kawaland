@@ -6,6 +6,7 @@ use Inertia\Inertia;
 use App\Models\Request;
 use App\Models\RequestItem;
 use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Facades\DB;
 
 class PurchasingDetailController extends Controller
 {
@@ -75,7 +76,7 @@ class PurchasingDetailController extends Controller
                 ->where('status', 'Pending')
                 ->update([
                     'status' => 'Approved',
-                    'jumlah_disetujui' => \DB::raw('jumlah_diajukan') // Set jumlah disetujui = jumlah diajukan
+                    'jumlah_disetujui' => DB::raw('jumlah_diajukan') // Set jumlah disetujui = jumlah diajukan
                 ]);
 
             return redirect()->back()->with('success', "Berhasil menyetujui {$updated} item untuk departemen {$departmentName}");

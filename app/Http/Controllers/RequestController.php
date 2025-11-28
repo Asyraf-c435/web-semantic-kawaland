@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
 
 class RequestController extends Controller
 {
@@ -27,7 +28,7 @@ class RequestController extends Controller
     public function store(Request $request)
     {
         // Debug: Lihat data yang diterima
-        \Log::info('Data received:', $request->all());
+        Log::info('Data received:', $request->all());
 
         // Validasi tanpa department karena akan diambil dari Auth::user()
         $validated = $request->validate([
@@ -90,7 +91,7 @@ class RequestController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error creating request: ' . $e->getMessage());
+            Log::error('Error creating request: ' . $e->getMessage());
             
             return redirect()->back()->withErrors([
                 'message' => 'Gagal mengirim request: ' . $e->getMessage()

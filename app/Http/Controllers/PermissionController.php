@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Permission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
-class PermissionController extends Controller
-{
+
+
+
+class PermissionController extends Controller{
     public function index()
     {
-        $permissions = Permission::where('user_id', auth()->id())
+        $permissions = Permission::where('user_id', Auth::id())
             ->with('user')
             ->orderBy('created_at', 'desc')
             ->get()
@@ -42,8 +46,8 @@ class PermissionController extends Controller
 
  public function store(Request $request)
 {
-    \Log::info('Permission Store Request:', $request->all());
-    \Log::info('Files:', $request->file() ? ['has_file' => true] : ['has_file' => false]);
+    Log::info('Permission Store Request:', $request->all());
+    Log::info('Files:', $request->file() ? ['has_file' => true] : ['has_file' => false]);
 
     // Validation rules
     $validated = $request->validate([
@@ -63,7 +67,7 @@ class PermissionController extends Controller
         'days' => 'nullable|integer',
     ]);
 
-    \Log::info('Validated Data:', $validated);
+    Log::info('Validated Data:', $validated);
 
     // Validasi khusus untuk datang terlambat
     if ($request->permission_type === 'datang terlambat' && 
@@ -83,7 +87,7 @@ class PermissionController extends Controller
     // Handle file upload - SIMPAN FULL PATH
     $documentPath = null;
     if ($request->hasFile('document')) {
-        \Log::info('File detected:', [
+        Log::info('File detected:', [
             'name' => $request->file('document')->getClientOriginalName(),
             'size' => $request->file('document')->getSize(),
             'mime' => $request->file('document')->getMimeType()
@@ -98,7 +102,7 @@ class PermissionController extends Controller
         $path = $file->storeAs('permissions', $fileName, 'public');
         $documentPath = $path;
         
-        \Log::info('File stored:', [
+        Log::info('File stored:', [
             'fileName' => $fileName,
             'path' => $path,
             'full_path' => $documentPath
@@ -107,16 +111,16 @@ class PermissionController extends Controller
         // Simpan full path ke database
         $validated['document_path'] = $documentPath;
     } else {
-        \Log::info('No file uploaded or file validation failed');
+        Log::info('No file uploaded or file validation failed');
     }
 
     // Hapus field document dari validated data karena bukan bagian dari model
     unset($validated['document']);
 
-    \Log::info('Data before create:', $validated);
+    Log::info('Data before create:', $validated);
 
     // Set default values
-    $validated['user_id'] = auth()->id();
+    $validated['user_id'] = Auth::id();
     $validated['status'] = 'pending';
     
     // Set location based on type if not provided
@@ -133,7 +137,7 @@ class PermissionController extends Controller
     $permission = Permission::create($validated);
     $permission->load('user');
 
-    \Log::info('Permission created:', [
+    Log::info('Permission created:', [
         'id' => $permission->id,
         'document_path' => $permission->document_path
     ]);
@@ -167,7 +171,7 @@ class PermissionController extends Controller
     {
         try {
             // Cari permission milik user yang login
-            $permission = Permission::where('user_id', auth()->id())->findOrFail($id);
+            $permission = Permission::where('user_id', Auth::id())->findOrFail($id);
             
             // Validasi input
             $validated = $request->validate([
@@ -255,7 +259,7 @@ class PermissionController extends Controller
 
     public function destroy($id)
     {
-        $permission = Permission::where('user_id', auth()->id())->findOrFail($id);
+        $permission = Permission::where('user_id', Auth::id())->findOrFail($id);
         
         // Hapus file dari storage jika ada
         if ($permission->document_path) {
@@ -270,7 +274,7 @@ class PermissionController extends Controller
     // Method untuk download file
     public function downloadDocument($id)
     {
-        $permission = Permission::where('user_id', auth()->id())->findOrFail($id);
+        $permission = Permission::where('user_id', Auth::id())->findOrFail($id);
         
         if (!$permission->document_path) {
             return response()->json(['message' => 'File tidak ditemukan'], 404);

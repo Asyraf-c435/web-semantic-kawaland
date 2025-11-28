@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Absensi;
+use App\Models\Absen;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Cloudinary\Cloudinary;
 
 class AbsensiController extends Controller
@@ -49,14 +50,14 @@ class AbsensiController extends Controller
         $imageUrl = $uploadResult['secure_url'];
 
       } catch (\Exception $e) {
-        \Log::error('Cloudinary upload gagal:', [$e->getMessage()]);
+        Log::error('Cloudinary upload gagal:', [$e->getMessage()]);
         return response()->json([
           'success' => false,
           'message' => 'Upload ke Cloudinary gagal: ' . $e->getMessage(),
         ], 500);
       }
 
-      Absensi::create([
+      Absen::create([
         'id_absensi' => Auth::id(),
         'tipe_absen' => strtoupper($validated['tipe_absen']) === 'MASUK' ? 'DATANG' : 'BALIK',
         'waktu_absen' => date('Y-m-d H:i:s', strtotime($validated['waktu_absen'])),
@@ -80,7 +81,7 @@ class AbsensiController extends Controller
 
   public function getRiwayat()
   {
-    $absensi = Absensi::where('id_absensi', Auth::id())
+    $absensi = Absen::where('id_absensi', Auth::id())
       ->orderBy('waktu_absen', 'desc')
       ->get();
 
