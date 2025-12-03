@@ -272,18 +272,23 @@ class PermissionController extends Controller{
     }
 
     // Method untuk download file
-    public function downloadDocument($id)
+     public function downloadDocument($id): mixed
     {
         $permission = Permission::where('user_id', Auth::id())->findOrFail($id);
-        
+
         if (!$permission->document_path) {
             return response()->json(['message' => 'File tidak ditemukan'], 404);
         }
 
-        if (!Storage::disk('public')->exists($permission->document_path)) {
+        // Buat path lengkap di storage
+        $filePath = storage_path('app/public/' . $permission->document_path);
+
+        // Cek file benar-benar ada
+        if (!file_exists($filePath)) {
             return response()->json(['message' => 'File tidak ditemukan di storage'], 404);
         }
 
-        return Storage::disk('public')->download($permission->document_path);
+        // Gunakan helper response() untuk download
+        return response()->download($filePath);
     }
 }

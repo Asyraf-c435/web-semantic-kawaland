@@ -158,21 +158,26 @@ SPARQL;
             ],
         ];
 
-        // 📍 Basis koordinat toko (Batam)
-        $baseLat = 1.083338;
-        $baseLng = 104.635812;
+       // 📍 Basis koordinat toko (Batam)
+$baseLat = 1.083338;
+$baseLng = 104.635812;
 
-        // 📍 Koordinat pembeli (posisi referensi)
-        $userLat = 1.116301;
-        $userLng = 104.036934;
+// 📍 Koordinat pembeli (posisi referensi)
+$userLat = 1.116301;
+$userLng = 104.036934;
 
-        // Generate random offset kecil, supaya tidak jauh dari base
-        $lat = $baseLat + (rand(-50, 50) / 1000); // ±0.05 derajat
-        $lng = $baseLng + (rand(-50, 50) / 1000);
+// Ambil lokasi toko dari RDF
+$storeLocation = $product['store']['location'] ?? null;
 
-        $distance = $this->calculateDistance($userLat, $userLng, $lat, $lng); // dalam KM
+// Pilih koordinat dari daftar sesuai lokasi
+$randomCoord = $this->getCoordinateByLocation($storeLocation, rand(0, 100));
 
-        $status = $distance > 10 ? 'Jauh' : 'Dekat';
+$lat = $randomCoord[0];
+$lng = $randomCoord[1];
+
+$distance = $this->calculateDistance($userLat, $userLng, $lat, $lng);
+
+$status = $distance > 10 ? 'Jauh' : 'Dekat';
 
         return response()->json([
             'success' => true,

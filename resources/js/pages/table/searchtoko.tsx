@@ -19,19 +19,26 @@ function SearchToko() {
   const [totalPages, setTotalPages] = useState(1);
   const wordCount = query.trim().split(/\s+/).length;
   const isSmartMode = wordCount >= 3;
+  const [sortPrice, setSortPrice] = useState("");
+  const [sortDistance, setSortDistance] = useState("");
+  const [sortRating, setSortRating] = useState("");
 
 
+
+useEffect(() => {
+  fetchData();
+}, []);
 
   // Live search with debounce
-  useEffect(() => {
-    if (!isSmartMode) {
-      const delayDebounce = setTimeout(() => {
-        fetchData(); // hanya jalan di live search
-      }, 400);
+useEffect(() => {
+  if (!isSmartMode) {
+    const delayDebounce = setTimeout(() => {
+      fetchData();
+    }, 400);
 
-      return () => clearTimeout(delayDebounce);
-    }
-  }, [query, page]);
+    return () => clearTimeout(delayDebounce);
+  }
+}, [query, page]);
 
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter" && isSmartMode) {
@@ -50,11 +57,16 @@ function SearchToko() {
       const res = await axios.get("/semantic/search", {
         params: {
           q: query || undefined,
-          smart: smartMode ? 1 : 0, // kirim ke backend
+          smart: smartMode ? 1 : 0,
+          sort_price: sortPrice || undefined,
+          sort_distance: sortDistance || undefined,
+          sort_rating: sortRating || undefined,
           page,
           per_page: 16,
         },
       });
+
+
       setResults(res.data.data || []);
     } catch (error) {
       console.error("Error fetching:", error);
@@ -87,51 +99,87 @@ function SearchToko() {
             </p>
           </div>
 
+          {/* Filter Dropdown */}
+          <div className="flex flex-wrap gap-4 mb-8 justify-center">
+
+            {/* Filter Harga */}
+            <select
+              value={sortPrice}
+              onChange={(e) => {
+                setSortPrice(e.target.value);
+                fetchData();
+              }}
+              className="px-4 py-3 rounded-xl border border-blue-200 bg-white shadow-sm"
+            >
+              <option value="">Urutkan Harga</option>
+              <option value="lowest">Harga Terendah</option>
+              <option value="highest">Harga Tertinggi</option>
+            </select>
+
+            {/* Filter Jarak */}
+            <select
+              value={sortDistance}
+              onChange={(e) => {
+                setSortDistance(e.target.value);
+                fetchData();
+              }}
+              className="px-4 py-3 rounded-xl border border-blue-200 bg-white shadow-sm"
+            >
+              <option value="">Urutkan Jarak</option>
+              <option value="nearest">Jarak Terdekat</option>
+              <option value="farthest">Jarak Terjauh</option>
+            </select>
+
+            {/* Filter Rating */}
+            <select
+              value={sortRating}
+              onChange={(e) => {
+                setSortRating(e.target.value);
+                fetchData();
+              }}
+              className="px-4 py-3 rounded-xl border border-blue-200 bg-white shadow-sm"
+            >
+              <option value="">Urutkan Rating</option>
+              <option value="highest">Rating Tertinggi</option>
+              <option value="lowest">Rating Terendah</option>
+            </select>
+
+          </div>
+
+
           {/* Search Input */}
           <div className="w-full flex justify-center mb-12">
             <div className="relative w-full max-w-3xl">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-700 rounded-3xl blur-xl opacity-20"></div>
-              <div className="relative backdrop-blur-xl bg-white rounded-3xl shadow-2xl border border-blue-100 p-2">
-                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                  <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  className="w-full max-w-3xl px-4 py-2 border border-gray-300 rounded-lg shadow-sm
-             focus:ring focus:ring-blue-300"
-                  placeholder="Cari produk... (contoh: ember merah murah di batam)"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-
-                {isSmartMode && (
-                  <div className="text-center text-blue-600 text-sm mt-2">
-                    ⏳ Pencarian pintar siap — Tekan <b>ENTER</b> untuk menjalankan NLP 🔍
-                  </div>
-                )}
-
-                {query && (
-                  <button
-                    onClick={() => setQuery("")}
-                    className="absolute inset-y-0 right-0 pr-6 flex items-center text-gray-400 hover:text-blue-600 transition-colors duration-200"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              <div className="relative backdrop-blur-xl bg-white/95 rounded-3xl shadow-2xl border border-blue-100 overflow-hidden">
+                <div className="flex items-center">
+                  <div className="pl-6 flex items-center pointer-events-none">
+                    <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                  </button>
-                )}
+                  </div>
+                  <input
+                    type="text"
+                    className="flex-1 px-4 py-5 bg-transparent border-none outline-none text-gray-800 text-lg placeholder-gray-400 focus:placeholder-gray-300 transition-all"
+                    placeholder="Cari produk... (contoh: ember merah murah di batam)"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
+                  {query && (
+                    <button
+                      onClick={() => setQuery("")}
+                      className="pr-6 flex items-center text-gray-400 hover:text-blue-600 hover:scale-110 transition-all duration-200"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-
-          {/* {query.trim().split(/\s+/).length >= 3 && (
-            <div className="text-center text-blue-600 font-semibold mt-2">
-              🔍 Pencarian Pintar (NLP) aktif – mencari berdasarkan warna, lokasi, dan harga...
-            </div>
-          )} */}
 
 
           {/* Loading Indicator */}
