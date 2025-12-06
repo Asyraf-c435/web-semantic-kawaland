@@ -184,69 +184,69 @@ function SearchToko() {
 
             {/* Filters */}
             <div className="flex flex-wrap gap-4 mb-10 justify-center items-center">
-  <div className="relative group">
-    <select
-      value={sortPrice}
-      onChange={(e) => handleSortChange('price', e.target.value)}
-      className="appearance-none px-6 py-3.5 pr-12 rounded-xl border-2 border-blue-200 bg-white shadow-sm hover:shadow-md hover:border-blue-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 font-medium text-gray-700 cursor-pointer outline-none"
-    >
-      <option value="">Harga</option>
-      <option value="lowest">Termurah</option>
-      <option value="highest">Termahal</option>
-    </select>
-    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-blue-500 group-hover:text-blue-600 transition-colors">
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
-    </div>
-  </div>
+              <div className="relative group">
+                <select
+                  value={sortPrice}
+                  onChange={(e) => handleSortChange('price', e.target.value)}
+                  className="appearance-none px-6 py-3.5 pr-12 rounded-xl border-2 border-blue-200 bg-white shadow-sm hover:shadow-md hover:border-blue-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 font-medium text-gray-700 cursor-pointer outline-none"
+                >
+                  <option value="">Harga</option>
+                  <option value="lowest">Termurah</option>
+                  <option value="highest">Termahal</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-blue-500 group-hover:text-blue-600 transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
 
-  <div className="relative group">
-    <select
-      value={sortDistance}
-      onChange={(e) => handleSortChange('distance', e.target.value)}
-      className="appearance-none px-6 py-3.5 pr-12 rounded-xl border-2 border-indigo-200 bg-white shadow-sm hover:shadow-md hover:border-indigo-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-300 font-medium text-gray-700 cursor-pointer outline-none"
-    >
-      <option value="">Jarak</option>
-      <option value="nearest">Terdekat</option>
-      <option value="farthest">Terjauh</option>
-    </select>
-    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-indigo-500 group-hover:text-indigo-600 transition-colors">
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
-    </div>
-  </div>
+              <div className="relative group">
+                <select
+                  value={sortDistance}
+                  onChange={(e) => handleSortChange('distance', e.target.value)}
+                  className="appearance-none px-6 py-3.5 pr-12 rounded-xl border-2 border-indigo-200 bg-white shadow-sm hover:shadow-md hover:border-indigo-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-300 font-medium text-gray-700 cursor-pointer outline-none"
+                >
+                  <option value="">Jarak</option>
+                  <option value="nearest">Terdekat</option>
+                  <option value="farthest">Terjauh</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-indigo-500 group-hover:text-indigo-600 transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
 
-  <div className="relative group">
-    <select
-      value={sortRating}
-      onChange={(e) => handleSortChange('rating', e.target.value)}
-      className="appearance-none px-6 py-3.5 pr-12 rounded-xl border-2 border-amber-200 bg-white shadow-sm hover:shadow-md hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-300 font-medium text-gray-700 cursor-pointer outline-none"
-    >
-      <option value="">⭐ Rating</option>
-      <option value="highest">Terbaik</option>
-      <option value="lowest">Terendah</option>
-    </select>
-    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-amber-500 group-hover:text-amber-600 transition-colors">
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
-    </div>
-  </div>
+              <div className="relative group">
+                <select
+                  value={sortRating}
+                  onChange={(e) => handleSortChange('rating', e.target.value)}
+                  className="appearance-none px-6 py-3.5 pr-12 rounded-xl border-2 border-amber-200 bg-white shadow-sm hover:shadow-md hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-300 font-medium text-gray-700 cursor-pointer outline-none"
+                >
+                  <option value="">⭐ Rating</option>
+                  <option value="highest">Terbaik</option>
+                  <option value="lowest">Terendah</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-amber-500 group-hover:text-amber-600 transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
 
-  {(sortPrice || sortDistance || sortRating) && (
-    <button
-      onClick={resetFilters}
-      className="group px-6 py-3.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold shadow-sm hover:shadow-md hover:from-red-600 hover:to-pink-600 transition-all duration-300 flex items-center gap-2"
-    >
-      <svg className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
-      Reset Filter
-    </button>
-  )}
-</div>
+              {(sortPrice || sortDistance || sortRating) && (
+                <button
+                  onClick={resetFilters}
+                  className="group px-6 py-3.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold shadow-sm hover:shadow-md hover:from-red-600 hover:to-pink-600 transition-all duration-300 flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Reset Filter
+                </button>
+              )}
+            </div>
 
             {/* Loading */}
             {loading && (

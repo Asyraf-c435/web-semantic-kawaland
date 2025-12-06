@@ -12,193 +12,246 @@ class ChatSemanticController extends Controller
         protected FusekiService $fuseki
     ) {}
 
+    /* ==========================================================
+     |  ENTRY POINT
+     ========================================================== */
     public function handle(Request $request): JsonResponse
     {
-        $text = $request->get('message', '');
+        try {
+            $text = trim($request->get('message', ''));
 
-        // 1) Parsing query alami → filter terstruktur
-        $parsed = $this->parseUserText($text);
-        // $parsed = ['q' => 'ember lipat', 'location' => 'batam', 'min_price' => null, 'max_price' => 100000];
+            if ($text === '') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Silakan ketik pencarian 🙏',
+                    'products' => [],
+                ]);
+            }
 
-        // 2) Bangun SPARQL dari filter ini
-        $sparql = $this->buildSparql($parsed);
+            $parsed = $this->parseUserText($text);
+            $sparql = $this->buildSparql($parsed);
 
-        $bindings = $this->fuseki->query($sparql);
+            $bindings = $this->fuseki->query($sparql);
 
-        $products = collect($bindings)->map(function ($row) {
-            return [
-                'id'       => $row['product']['value'] ?? null,
-                'name'     => $row['productName']['value'] ?? null,
-                'price'    => isset($row['price']['value']) ? (int)$row['price']['value'] : null,
-                'image'    => $row['image']['value'] ?? null,
-                'category' => $row['category']['value'] ?? null,
-                'store'    => [
-                    'name'     => $row['storeName']['value'] ?? null,
-                    'location' => $row['storeLocation']['value'] ?? null,
-                    'logo'     => $row['storeLogo']['value'] ?? null,
+            $products = collect($bindings)->map(fn ($r) => [
+                'id'    => $r['product']['value'] ?? null,
+                'name'  => $r['productName']['value'] ?? null,
+                'price' => isset($r['price']['value']) ? (int) $r['price']['value'] : null,
+                'category' => $r['category']['value'] ?? null,
+                'store' => [
+                    'name' => $r['storeName']['value'] ?? null,
+                    'location' => $r['storeLocation']['value'] ?? null,
                 ],
-            ];
-        })->values();
+            ])->filter(fn ($p) => $p['id'])->values();
 
-        // 3) Jawaban teks ala chatbot
-        $replyText = $this->buildReplyText($parsed, $products->count());
+            return response()->json([
+                'success' => true,
+                'message' => $this->buildReplyText($parsed, $products->count()),
+                'filters' => $parsed,
+                'products' => $products,
+            ]);
 
-        return response()->json([
-            'success'  => true,
-            'message'  => $replyText,
-            'filters'  => $parsed,
-            'products' => $products,
-        ]);
+        } catch (\Throwable $e) {
+            \Log::error($e);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem',
+                'products' => [],
+            ], 500);
+        }
     }
 
-    /**
-     * NLP SEDERHANA: parse kalimat user -> keyword, lokasi, range harga
-     */
+    /* ==========================================================
+     |  LEXICON NLP (OTAK BAHASA)
+     ========================================================== */
+    protected array $nlpLexicon = [
+
+        // ===== TYPO =====
+        'typo' => [
+            'kopi' => ['kpi','kopii','kopy'],
+            'teh' => ['tee','tehh','teeh'],
+            'air' => ['aer','airr'],
+            'beras' => ['brs','beraz'],
+            'buah' => ['buah2','bua'],
+            'coklat' => ['cokelat','choco'],
+            'daging' => ['dagingg','beef'],
+            'dimsum' => ['dim sum','dimsu','dimssum'],
+            'kentang' => ['kentang goreng','french fries','fries'],
+            'gula' => ['gulla','suggar'],
+            'mie' => ['mi','mii','noodle'],
+            'roti' => ['bread','rto'],
+            'smooked beef' => ['smoked beef','smok beef','smooked'],
+            'telur' => ['telorr','egg'],
+            'coca cola' => ['cola','cocacola','coca-cola'],
+        ],
+
+        // ===== ENTITY =====
+        'entities' => [
+            'air mineral',
+            'kopi',
+            'teh',
+            'beras',
+            'buah',
+            'coklat',
+            'daging',
+            'dimsum',
+            'kentang',
+            'gula',
+            'mie',
+            'roti',
+            'smooked beef',
+            'telur',
+            'coca cola',
+        ],
+
+        // ===== HARGA =====
+        'price_intent' => [
+            'murah' => ['murah','hemat','ekonomis','terjangkau'],
+            'mahal' => ['mahal','premium','branded'],
+        ],
+    ];
+
+    /* ==========================================================
+     |  NLP PARSER
+     ========================================================== */
     protected function parseUserText(string $text): array
     {
         $lower = mb_strtolower($text, 'UTF-8');
+        $clean = preg_replace('/[^a-z0-9\s]/u', ' ', $lower);
 
-        // --- keyword dasar (buang kata-kata umum) ---
-        $q = $lower;
-        $stopwords = ['cari', 'tolong', 'dong', 'ya', 'yang', 'di', 'untuk', 'dengan', 'lagi', 'mau', 'tapi'];
-        foreach ($stopwords as $stop) {
-            $q = str_replace(' ' . $stop . ' ', ' ', $q);
-        }
-        $q = trim($q);
-
-        // --- lokasi simpel ---
-        $location = null;
-        if (str_contains($lower, 'batam')) {
-            $location = 'batam';
-        } elseif (str_contains($lower, 'tanjung pinang') || str_contains($lower, 'tanjungpinang')) {
-            $location = 'tanjung pinang';
-        } elseif (str_contains($lower, 'kepulauan riau') || str_contains($lower, 'kepri')) {
-            $location = 'kepulauan riau';
-        }
-
-        // --- harga: "di bawah 100 ribu", "max 200k", "kurang dari 50.000" ---
-        $minPrice = null;
-        $maxPrice = null;
-
-        // angka + kata 'ribu' / 'juta'
-        if (preg_match_all('/(\d+)\s*(ribu|rb|k|juta|jt)?/i', $text, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $m) {
-                $num = (int)$m[1];
-                $unit = strtolower($m[2] ?? '');
-
-                if (in_array($unit, ['ribu', 'rb', 'k'])) {
-                    $num *= 1000;
-                } elseif (in_array($unit, ['juta', 'jt'])) {
-                    $num *= 1000000;
-                }
-
-                // cek konteks: "di bawah", "kurang dari", "maksimal"
-                if (preg_match('/(di bawah|kurang dari|max|maks|maksimal)/i', $lower)) {
-                    $maxPrice = $num;
-                } elseif (preg_match('/(di atas|minimal|min)/i', $lower)) {
-                    $minPrice = $num;
-                }
+        // TYPO FIX
+        foreach ($this->nlpLexicon['typo'] as $correct => $variants) {
+            foreach ($variants as $v) {
+                $clean = str_replace($v, $correct, $clean);
             }
         }
 
-        // fallback: kalau ada kata “murah” tapi nggak ada angka → set maxPrice default
-        if ($maxPrice === null && str_contains($lower, 'murah')) {
-            $maxPrice = 100000; // 100k default
+        // ENTITY
+        $q = '';
+        foreach ($this->nlpLexicon['entities'] as $entity) {
+            if (str_contains($clean, $entity)) {
+                $q = $entity;
+                break;
+            }
+        }
+
+        // LOCATION
+        $location = null;
+        if (str_contains($clean, 'batam')) {
+            $location = 'batam';
+        } elseif (str_contains($clean, 'tanjung pinang') || str_contains($clean, 'tp')) {
+            $location = 'tanjung pinang';
+        } elseif (str_contains($clean, 'bintan')) {
+            $location = 'bintan';
+        }
+
+        // HARGA
+        $minPrice = null;
+        $maxPrice = null;
+
+        foreach ($this->nlpLexicon['price_intent']['murah'] as $kw) {
+            if (str_contains($clean, $kw)) {
+                $maxPrice = 100000;
+            }
+        }
+
+        foreach ($this->nlpLexicon['price_intent']['mahal'] as $kw) {
+            if (str_contains($clean, $kw)) {
+                $minPrice = 150000;
+            }
+        }
+
+        if (preg_match('/(\d+)\s*(ribu|rb|k|juta|jt)?/i', $clean, $m)) {
+            $num = (int) $m[1];
+            $unit = strtolower($m[2] ?? '');
+
+            if (in_array($unit, ['ribu','rb','k'])) $num *= 1000;
+            if (in_array($unit, ['juta','jt'])) $num *= 1000000;
+
+            if (preg_match('/(dibawah|kurang|max)/i', $clean)) {
+                $maxPrice = $num;
+            } elseif (preg_match('/(diatas|min)/i', $clean)) {
+                $minPrice = $num;
+            }
         }
 
         return [
-            'q'         => $q,
-            'location'  => $location,
+            'q' => $q ?: trim($clean),
+            'location' => $location,
             'min_price' => $minPrice,
             'max_price' => $maxPrice,
         ];
     }
 
-    /**
-     * Bangun SPARQL dari hasil parsing NLP
-     */
+    /* ==========================================================
+     |  SPARQL BUILDER
+     ========================================================== */
     protected function buildSparql(array $f): string
     {
-        $q          = addslashes($f['q'] ?? '');
-        $location   = $f['location'];
-        $minPrice   = $f['min_price'];
-        $maxPrice   = $f['max_price'];
-
         $filters = [];
 
-        if ($q !== '') {
+        if (!empty($f['q'])) {
+            $q = addslashes($f['q']);
             $filters[] = "
-      (contains(lcase(str(?productName)), lcase(\"$q\")) ||
-       contains(lcase(str(?category)), lcase(\"$q\")) ||
-       contains(lcase(str(?brand)), lcase(\"$q\")) ||
-       contains(lcase(str(?storeName)), lcase(\"$q\")))";
+              (
+                CONTAINS(LCASE(STR(?productName)), LCASE(\"$q\")) ||
+                CONTAINS(LCASE(STR(?category)), LCASE(\"$q\")) ||
+                CONTAINS(LCASE(STR(?brand)), LCASE(\"$q\")) ||
+                CONTAINS(LCASE(STR(?storeName)), LCASE(\"$q\"))
+              )
+            ";
         }
 
-        if ($location) {
-            $loc = addslashes($location);
-            $filters[] = "contains(lcase(str(?storeLocation)), lcase(\"$loc\"))";
+        if ($f['location']) {
+            $loc = addslashes($f['location']);
+            $filters[] = "CONTAINS(LCASE(STR(?storeLocation)), LCASE(\"$loc\"))";
         }
 
-        if ($minPrice !== null) {
-            $filters[] = "xsd:decimal(?price) >= $minPrice";
-        }
+        if ($f['min_price'])
+            $filters[] = "xsd:decimal(?price) >= {$f['min_price']}";
 
-        if ($maxPrice !== null) {
-            $filters[] = "xsd:decimal(?price) <= $maxPrice";
-        }
+        if ($f['max_price'])
+            $filters[] = "xsd:decimal(?price) <= {$f['max_price']}";
 
-        $filterBlock = '';
-        if (!empty($filters)) {
-            $filterBlock = "FILTER(" . implode(' && ', $filters) . ")";
-        }
+        $filterBlock = $filters ? 'FILTER(' . implode(' && ', $filters) . ')' : '';
 
         return <<<SPARQL
 PREFIX kawaland: <http://kawaland.org/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?product ?productName ?price ?image ?category ?brand ?storeName ?storeLocation ?storeLogo
+SELECT ?product ?productName ?price ?category ?brand ?storeName ?storeLocation
 WHERE {
   ?product a kawaland:Product ;
            kawaland:hasProductName ?productName ;
            kawaland:hasPrice ?price .
 
-  OPTIONAL { ?product kawaland:hasImage ?image }
   OPTIONAL { ?product kawaland:hasCategory ?category }
   OPTIONAL { ?product kawaland:hasBrand ?brand }
   OPTIONAL { ?product kawaland:soldBy ?store }
   OPTIONAL { ?store kawaland:hasStoreName ?storeName }
   OPTIONAL { ?store kawaland:hasLocation ?storeLocation }
-  OPTIONAL { ?store kawaland:logo_toko ?storeLogo }
 
   $filterBlock
 }
+ORDER BY ?price
 LIMIT 30
 SPARQL;
     }
 
-    /**
-     * Jawaban teks singkat ala chatbot
-     */
+    /* ==========================================================
+     |  CHATBOT RESPONSE
+     ========================================================== */
     protected function buildReplyText(array $f, int $count): string
     {
         if ($count === 0) {
-            return "Maaf, aku belum menemukan produk yang cocok dengan permintaanmu 😢. Coba ganti kata kunci atau harga ya.";
+            return "😕 Produk tidak ditemukan, coba kata lain atau ubah budget.";
         }
 
         $parts = [];
+        if ($f['q']) $parts[] = "\"{$f['q']}\"";
+        if ($f['location']) $parts[] = "di {$f['location']}";
+        if ($f['max_price']) $parts[] = "≤ Rp " . number_format($f['max_price'], 0, ',', '.');
 
-        if ($f['q']) {
-            $parts[] = "untuk \"" . $f['q'] . "\"";
-        }
-        if ($f['location']) {
-            $parts[] = "di area " . ucfirst($f['location']);
-        }
-        if ($f['max_price']) {
-            $parts[] = "dengan harga maksimal " . number_format($f['max_price'], 0, ',', '.');
-        }
-
-        $filterText = $parts ? ' ' . implode(' ', $parts) : '';
-
-        return "Aku menemukan {$count} produk{$filterText}. Ini beberapa yang cocok buatmu 👇";
+        return "✅ Ditemukan {$count} produk " . implode(' ', $parts) . ".";
     }
 }
