@@ -70,7 +70,7 @@ function ProductDetailPage() {
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const res = await axios.get(`/semantic/products/${id}`);
+        const res = await axios.get(`/semantic/product/${id}`);
         if (res.data?.success) {
           setProduct(res.data.data);
           setLocation(res.data.location);
@@ -108,8 +108,8 @@ function ProductDetailPage() {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 relative overflow-hidden">
           {/* Floating Light Orbs Background */}
           <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400 rounded-full glow-orb"></div>
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-300 rounded-full glow-orb" style={{animationDelay: '2s'}}></div>
-          
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-300 rounded-full glow-orb" style={{ animationDelay: '2s' }}></div>
+
           <div className="inline-flex items-center gap-4 px-8 py-4 bg-white backdrop-blur-lg rounded-2xl shadow-xl border border-blue-100 relative z-10">
             <div className="relative">
               <div className="animate-spin h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full"></div>
@@ -137,8 +137,8 @@ function ProductDetailPage() {
         `}</style>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 relative overflow-hidden">
           <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400 rounded-full glow-orb"></div>
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-300 rounded-full glow-orb" style={{animationDelay: '2s'}}></div>
-          
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-300 rounded-full glow-orb" style={{ animationDelay: '2s' }}></div>
+
           <div className="backdrop-blur-xl bg-white rounded-3xl shadow-2xl border border-blue-100 p-10 relative z-10">
             <p className="text-red-600 font-semibold text-lg">Produk tidak ditemukan.</p>
           </div>
@@ -150,22 +150,22 @@ function ProductDetailPage() {
   const priceFormatted =
     product.price != null
       ? new Intl.NumberFormat('id-ID', {
-          style: 'currency',
-          currency: 'IDR',
-        }).format(product.price)
+        style: 'currency',
+        currency: 'IDR',
+      }).format(product.price)
       : '-';
 
   const imgSrc =
     product.image && product.image.startsWith('data:image')
       ? product.image
       : product.image
-      ? `data:image/jpeg;base64,${product.image}`
-      : null;
+        ? `data:image/jpeg;base64,${product.image}`
+        : null;
 
   return (
     <>
       <Head title={`Detail Produk - ${product.name || ''}`} />
-      
+
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
@@ -195,9 +195,9 @@ function ProductDetailPage() {
       <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 p-4 md:p-8 relative overflow-hidden">
         {/* Floating Light Orbs Background */}
         <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400 rounded-full glow-orb"></div>
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-300 rounded-full glow-orb" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/3 w-72 h-72 bg-blue-300 rounded-full glow-orb" style={{animationDelay: '1s'}}></div>
-        
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-300 rounded-full glow-orb" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/3 w-72 h-72 bg-blue-300 rounded-full glow-orb" style={{ animationDelay: '1s' }}></div>
+
         <div className="max-w-6xl mx-auto bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-blue-100 p-6 md:p-10 relative z-10">
           {/* Header */}
           <div className="flex flex-col lg:flex-row gap-8">
@@ -214,7 +214,7 @@ function ProductDetailPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-blue-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     {/* Small glow effect */}
                     <div className="absolute top-4 left-4 w-4 h-4 bg-blue-400 rounded-full blur-sm opacity-60 animate-pulse"></div>
-                    <div className="absolute bottom-4 right-4 w-3 h-3 bg-cyan-400 rounded-full blur-sm opacity-60 animate-pulse" style={{animationDelay: '1s'}}></div>
+                    <div className="absolute bottom-4 right-4 w-3 h-3 bg-cyan-400 rounded-full blur-sm opacity-60 animate-pulse" style={{ animationDelay: '1s' }}></div>
                   </div>
                 ) : (
                   <div className="w-full h-96 flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 rounded-3xl text-gray-400 shadow-inner">
@@ -284,7 +284,7 @@ function ProductDetailPage() {
               {product.store && (
                 <div className="mt-4 flex items-center gap-4 p-5 bg-gradient-to-br from-white to-blue-50 rounded-3xl border border-blue-100 shadow-lg relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400 rounded-full blur-3xl opacity-10"></div>
-                  
+
                   {product.store.logo && (
                     <img
                       src={product.store.logo}
@@ -363,16 +363,15 @@ function ProductDetailPage() {
                 </svg>
                 Lokasi Toko
               </h2>
-              
+
               <div className="mb-4 p-5 bg-gradient-to-r from-white to-blue-50 rounded-2xl border border-blue-100 shadow-md">
                 <p className="text-gray-700 font-medium flex items-center gap-2">
                   <span>Status jarak:</span>
                   <span
-                    className={`px-4 py-1 rounded-full font-bold text-sm ${
-                      location.status === 'Dekat'
+                    className={`px-4 py-1 rounded-full font-bold text-sm ${location.status === 'Dekat'
                         ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                         : 'bg-red-100 text-red-700 border border-red-200'
-                    }`}
+                      }`}
                   >
                     {location.status}
                   </span>

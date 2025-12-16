@@ -122,7 +122,7 @@ function SearchToko() {
       <Head title="Cari Produk / Toko" />
 
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-        
+
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -301,7 +301,7 @@ function SearchToko() {
                             className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                          
+
                           {/* Category Badge */}
                           {item.category && (
                             <div className="absolute top-3 right-3 backdrop-blur-md bg-white/90 px-4 py-1.5 rounded-xl text-xs font-bold text-blue-700 shadow-lg border border-blue-100">
@@ -311,11 +311,10 @@ function SearchToko() {
 
                           {/* Stock Badge */}
                           {item.stock !== null && (
-                            <div className={`absolute top-3 left-3 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg ${
-                              item.stock > 0 
-                                ? 'bg-green-100 text-green-700 border border-green-200' 
+                            <div className={`absolute top-3 left-3 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg ${item.stock > 0
+                                ? 'bg-green-100 text-green-700 border border-green-200'
                                 : 'bg-red-100 text-red-700 border border-red-200'
-                            }`}>
+                              }`}>
                               {item.stock > 0 ? `📦 Stok: ${item.stock}` : '❌ Habis'}
                             </div>
                           )}
@@ -334,10 +333,10 @@ function SearchToko() {
                           <p className="text-3xl font-black bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
                             {item.price
                               ? new Intl.NumberFormat("id-ID", {
-                                  style: "currency",
-                                  currency: "IDR",
-                                  minimumFractionDigits: 0,
-                                }).format(item.price)
+                                style: "currency",
+                                currency: "IDR",
+                                minimumFractionDigits: 0,
+                              }).format(item.price)
                               : "Hubungi Penjual"}
                           </p>
                         </div>
@@ -379,7 +378,7 @@ function SearchToko() {
                         {/* Action Buttons */}
                         <div className="flex gap-2 mt-auto">
                           <a
-                            href={`/products/${item.id}`}
+                            href={`/semantic/products/${item.id}`}
                             className="flex-1 text-center text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 py-3 rounded-2xl transition-all duration-300 hover:shadow-md border-2 border-blue-200 hover:border-blue-300"
                           >
                             📄 Detail
@@ -473,16 +472,15 @@ function SearchToko() {
                     } else {
                       pageNum = page - 3 + i;
                     }
-                    
+
                     return (
                       <button
                         key={pageNum}
                         onClick={() => setPage(pageNum)}
-                        className={`w-12 h-12 rounded-2xl font-bold transition-all duration-300 ${
-                          page === pageNum
+                        className={`w-12 h-12 rounded-2xl font-bold transition-all duration-300 ${page === pageNum
                             ? 'bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl scale-110 border-2 border-blue-500'
                             : 'bg-white/80 backdrop-blur-sm border-2 border-blue-200 text-gray-700 hover:bg-blue-50 hover:border-blue-400 hover:scale-105'
-                        }`}
+                          }`}
                       >
                         {pageNum}
                       </button>
